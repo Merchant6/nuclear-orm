@@ -1,0 +1,23 @@
+{
+    "name": "merchant/nuclear-orm",
+    "description": "A simple Object Relation Mapper for PHP.",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Merchant\\NuclearOrm\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Saboor Merchant",
+            "email": "saboormerchant6@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "vlucas/phpdotenv": "5.6.x-dev"
+    }
+}
