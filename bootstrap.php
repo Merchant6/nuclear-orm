@@ -5,10 +5,9 @@
 require_once __DIR__ . "/vendor/autoload.php";
 
 use Dotenv\Dotenv;
-use Merchant\NuclearOrm\Core\DatabaseConnection;
-
+use Merchant\NuclearOrm\Models\Test;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-echo json_encode((new DatabaseConnection)->connect()->getAttribute(PDO::ATTR_CONNECTION_STATUS));
+echo json_encode((new Test())->isFillable('name'));

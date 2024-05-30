@@ -48,4 +48,14 @@ class DatabaseConnection
 
         return $conn;
     }
+
+    /**
+     * Get the current connection status
+     *
+     * @return string
+     */
+    public function status(): string
+    {
+        return $this->connect()->getAttribute(PDO::ATTR_CONNECTION_STATUS);
+    }
 }
