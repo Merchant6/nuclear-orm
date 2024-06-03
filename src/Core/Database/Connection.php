@@ -1,31 +1,25 @@
 <?php
 declare(strict_types=1);
 
-namespace Merchant\NuclearOrm\Core;
+namespace Merchant\NuclearOrm\Core\Database;
 use PDO;
 
 /**
  * A database connection class
  */
-class DatabaseConnection
+class Connection
 {   
-    private string $connection;
-    private string $host;
-    private string $port;
-    private string $database;
-    private string $user;
-    private string $password;
-    private string $persistentConnection;
-
-    public function __construct()
+    public function __construct(
+        private string $connection,
+        private string $host,
+        private string $database,
+        private string $user,
+        private string $password,
+        private int $port = 3306,
+        private bool $persistentConnection = true,
+    )
     {
-        $this->connection = env('DB_CONNECTION');
-        $this->host = env('DB_HOST');
-        $this->port = env('DB_PORT');
-        $this->database = env('DB_DATABASE');
-        $this->user = env('DB_USERNAME');
-        $this->password = env('DB_PASSWORD');
-        $this->persistentConnection = env('DB_PERSISTENT_CONNECTION');
+        $this->connect();
     }
 
     /**

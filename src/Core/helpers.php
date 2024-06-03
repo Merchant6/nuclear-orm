@@ -1,7 +1,16 @@
 <?php
 
-if(!function_exists('env')){
-    function env(string $variable){
-        return $_ENV[$variable];
+use DI\ContainerBuilder;
+
+//Helper functions
+
+if(!function_exists('container')){
+    function container()
+    {
+        $builder = new ContainerBuilder();
+        $builder->addDefinitions(__DIR__ . '/../config/definitions.php');
+        $container = $builder->build();
+
+        return $container;
     }
 }

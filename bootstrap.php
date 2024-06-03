@@ -4,10 +4,16 @@
 
 require_once __DIR__ . "/vendor/autoload.php";
 
-use Dotenv\Dotenv;
-use Merchant\NuclearOrm\Models\Test;
+use Merchant\NuclearOrm\Core\Nuclear;
 
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+$nuclear = new Nuclear([
+    'connection' => 'mysql',
+    'host' => '127.0.0.1',
+    'database' => 'test',
+    'user' => 'merchant',
+    'password' => 'Thealien862!',
+    'port' => 3306,
+    'persistent' => true,
+]);
 
-echo json_encode((new Test())->isFillable('name'));
+var_dump($nuclear->getConnection()->status());

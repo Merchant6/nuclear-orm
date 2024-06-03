@@ -14,7 +14,7 @@ abstract class Model
 
     public function __construct()
     {
-        $this->setConnection((new DatabaseConnection())->connect());
+        $this->setConnection($this->connection);
     }
 
     public function setConnection($connection)
@@ -32,8 +32,8 @@ abstract class Model
         return $this->fillable;
     }
 
-    public function isFillable(string $key)
+    public function isFillable(string $value)
     {
-        return in_array($key, $this->getFillable());
+        return in_array($value, $this->getFillable());
     }
 }
