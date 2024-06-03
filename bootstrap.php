@@ -15,5 +15,3 @@ $nuclear = new Nuclear([
     'port' => 3306,
     'persistent' => true,
 ]);
-
-var_dump($nuclear->getConnection()->status());

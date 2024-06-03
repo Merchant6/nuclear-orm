@@ -21,7 +21,7 @@ class Nuclear
      * @param array $params
      * @return Connection
      */
-    public function createConnectionfromParams(array $params): Connection
+    private function createConnectionFromParams(array $params): Connection
     {   
         $connection = new Connection(
             connection: $params['connection'],
@@ -36,6 +36,11 @@ class Nuclear
         return $connection;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return Connection
+     */
     public function getConnection()
     {
         return $this->connection;
