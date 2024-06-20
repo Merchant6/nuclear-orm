@@ -9,8 +9,6 @@ if(!function_exists('container')){
     {
         $builder = new ContainerBuilder();
         $builder->addDefinitions(__DIR__ . '/../config/definitions.php');
-        $container = $builder->build();
-
-        return $container;
+        return $builder->build();
     }
 }

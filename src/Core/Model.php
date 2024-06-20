@@ -3,37 +3,98 @@ declare(strict_types=1);
 
 namespace Merchant\NuclearOrm\Core;
 
-use Merchant\NuclearOrm\Core\DatabaseConnection;
+use Exception;
+use Merchant\NuclearOrm\Core\Database\Connection;
 use PDO;
 
 abstract class Model
 {
-    protected PDO $connection;
-
+    protected static Connection $connection;
     protected array $fillable;
+    protected array $attributes = [];
 
     public function __construct()
     {
-        $this->setConnection($this->connection);
+
     }
 
-    public function setConnection($connection)
+    public static function setConnection($connection): void
     {
-        $this->connection = $connection;
+        self::$connection = $connection;
     }
 
-    public function getConnection()
+    /**
+     * Get the current database connection
+     *
+     * @return Connection
+     */
+    public function getConnection(): Connection
     {
-        return $this->connection;
+        return self::$connection;
     }
 
-    public function getFillable()
+    /**
+     * Get the mass-assignable attributes
+     *
+     * @return array
+     */
+    public function getFillable(): array
     {
         return $this->fillable;
     }
 
-    public function isFillable(string $value)
+    /**
+     * Check if an attribute is mass-assignable
+     *
+     * @param string $value
+     * @return bool
+     */
+    public function isFillable(string $value): bool
     {
         return in_array($value, $this->getFillable());
+    }
+
+    /**
+     * @param string $attribute
+     * @return mixed
+     * @throws Exception
+     */
+    public function getAttribute(string $attribute): mixed
+    {
+        if (!array_key_exists($attribute, $this->attributes)) {
+            throw new Exception("Attribute $attribute does not exist.");
+        }
+        return $this->attributes[$attribute];
+    }
+
+    /**
+     * @param string $attribute
+     * @param mixed $value
+     * @return void
+     * @throws Exception
+     */
+    public function setAttribute(string $attribute, mixed $value): void
+    {
+        if ($this->isFillable($attribute)) {
+            $this->attributes[$attribute] = $value;
+        } else {
+            throw new Exception("Attribute $attribute is not fillable.");
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function __get(string $attribute)
+    {
+        return $this->getAttribute($attribute);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function __set(string $attribute, mixed $value): void
+    {
+        $this->setAttribute($attribute, $value);
     }
 }

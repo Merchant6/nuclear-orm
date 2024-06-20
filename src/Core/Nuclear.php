@@ -22,8 +22,8 @@ class Nuclear
      * @return Connection
      */
     private function createConnectionFromParams(array $params): Connection
-    {   
-        $connection = new Connection(
+    {
+        return new Connection(
             connection: $params['connection'],
             host: $params['host'],
             database: $params['database'],
@@ -32,8 +32,6 @@ class Nuclear
             port: $params['port'] ?? 3306,
             persistentConnection: $params['persistent'],
         );
-
-        return $connection;
     }
 
     /**
@@ -41,8 +39,13 @@ class Nuclear
      *
      * @return Connection
      */
-    public function getConnection()
+    public function getConnection(): Connection
     {
         return $this->connection;
+    }
+
+    public function boot(): void
+    {
+        Model::setConnection($this->connection);
     }
 }

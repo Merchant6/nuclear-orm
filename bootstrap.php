@@ -15,3 +15,11 @@ $nuclear = new Nuclear([
     'port' => 3306,
     'persistent' => true,
 ]);
+
+$nuclear->boot();
+
+$test = new \Merchant\NuclearOrm\Models\Test();
+
+$test->name = 'John doe';
+
+echo $test->name;
