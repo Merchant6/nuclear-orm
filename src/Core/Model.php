@@ -18,6 +18,13 @@ abstract class Model
 
     }
 
+
+    /**
+     * Set the database connection
+     *
+     * @param $connection
+     * @return void
+     */
     public static function setConnection($connection): void
     {
         self::$connection = $connection;

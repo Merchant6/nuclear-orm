@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Merchant\NuclearOrm\Core;
 
 use Merchant\NuclearOrm\Core\Database\Connection;
+use Merchant\NuclearOrm\Core\Database\QueryBuilder;
 
 class Nuclear
 {   
@@ -46,6 +47,7 @@ class Nuclear
 
     public function boot(): void
     {
+        QueryBuilder::setConnection($this->connection);
         Model::setConnection($this->connection);
     }
 }
