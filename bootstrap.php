@@ -8,10 +8,10 @@ use Merchant\NuclearOrm\Core\Nuclear;
 
 $nuclear = new Nuclear([
     'connection' => 'mysql',
-    'host' => '127.0.0.1',
+    'host' => 'host',
     'database' => 'nuclear',
-    'user' => 'merchant',
-    'password' => 'Thealien862!',
+    'user' => 'user',
+    'password' => 'password',
     'port' => 3306,
     'persistent' => true,
 ]);
