@@ -3,17 +3,15 @@
 namespace Merchant\NuclearOrm\Core\Database;
 
 use PDO;
+use PDOStatement;
 
 class QueryBuilder
 {
     protected static Connection $connection;
-    public string $from;
     public array $where = [];
     public array $whereAnd = [];
     public array $values = [];
-    public string $limit;
-    private string $table;
-    private array $columns;
+    private string $table = '';
     private string $sql = '';
 
     public function __construct()
@@ -58,7 +56,7 @@ class QueryBuilder
     /**
      * Build a select statement
      *
-     * @param array $columns
+     * @param array $columns<string>
      * @return $this
      */
     public function select(array $columns = ['*']): self
@@ -109,6 +107,8 @@ class QueryBuilder
     }
 
     /**
+     * Add limit to the sql statement
+     *
      * @param int $limit
      * @return $this
      */
@@ -119,6 +119,12 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * Add offset to the sql statement
+     *
+     * @param int $offset
+     * @return $this
+     */
     public function offset(int $offset): self
     {
         $this->sql .= " OFFSET ";
@@ -127,7 +133,41 @@ class QueryBuilder
     }
 
     /**
-     * Get the sql statement
+     * Insert a record to the database
+     *
+     * @param array<string, mixed> $data
+     * @return bool|PDOStatement
+     */
+    public function insert(array $data): bool|PDOStatement
+    {
+        $this->sql = sprintf(
+            "INSERT INTO %s (%s) VALUES (%s)",
+            $this->table,
+            implode(', ', array_keys($data)),
+            implode(', ', array_map(function ($value) {
+                $this->values[] = $value;
+                return $value = "?";
+                }, $data ))
+        );
+
+        return $this->prepareAndExecute();
+    }
+
+    /**
+     * Get the sql statement with values
+     *
+     * @return string
+     */
+    public function statement(): string
+    {
+        $values = array_values($this->values);
+        var_dump($values);
+        $this->sql = str_replace('?', '%s', $this->sql);
+        return sprintf($this->sql, ...$values);
+    }
+
+    /**
+     * Get the sql query
      *
      * @return string
      */
@@ -136,7 +176,12 @@ class QueryBuilder
         return $this->sql;
     }
 
-    public function prepareAndExecute(): bool|\PDOStatement
+    /**
+     * Returns a prepared statement
+     *
+     * @return bool|PDOStatement
+     */
+    public function prepareAndExecute(): bool|PDOStatement
     {
         $stmt = $this->getConnection()
             ->prepare($this->query());
