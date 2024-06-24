@@ -10,10 +10,11 @@ class QueryBuilder
     public string $from;
     public array $where = [];
     public array $whereAnd = [];
+    public array $values = [];
     public string $limit;
     private string $table;
     private array $columns;
-    private string $sql;
+    private string $sql = '';
 
     public function __construct()
     {
@@ -79,10 +80,10 @@ class QueryBuilder
         $this->where[] = [$column, $operator, $value];
         $this->sql .= " WHERE ";
         foreach ($this->where as $clauses){
-            $clauses[2] = '"' . $clauses[2] . '"';
+            $this->values[] = $clauses[2];
+            $clauses[2] = "?";
             $this->sql .= implode(" ", $clauses);
         }
-
         return $this;
     }
 
@@ -99,10 +100,29 @@ class QueryBuilder
         $this->whereAnd[] = [$column, $operator, $value];
         $this->sql .= " AND ";
         foreach ($this->whereAnd as $clauses){
-            $clauses[2] = '"' . $clauses[2] . '"';
+            $this->values[] = $clauses[2];
+            $clauses[2] = "?";
             $this->sql .= implode(" ", $clauses);
         }
 
+        return $this;
+    }
+
+    /**
+     * @param int $limit
+     * @return $this
+     */
+    public function limit(int $limit): self
+    {
+        $this->sql .= " LIMIT ";
+        $this->sql .= $limit;
+        return $this;
+    }
+
+    public function offset(int $offset): self
+    {
+        $this->sql .= " OFFSET ";
+        $this->sql .= $offset;
         return $this;
     }
 
@@ -116,6 +136,16 @@ class QueryBuilder
         return $this->sql;
     }
 
+    public function prepareAndExecute(): bool|\PDOStatement
+    {
+        $stmt = $this->getConnection()
+            ->prepare($this->query());
+
+        $stmt->execute($this->values);
+
+        return $stmt;
+    }
+
     /**
      * Get the result when running a specified query
      *
@@ -123,8 +153,7 @@ class QueryBuilder
      */
     public function get(): bool|array
     {
-        return $this->getConnection()
-            ->query($this->query())
+        return $this->prepareAndExecute()
             ->fetchAll(PDO::FETCH_ASSOC);
     }
 }
