@@ -145,12 +145,29 @@ class QueryBuilder
             $this->table,
             implode(', ', array_keys($data)),
             implode(', ', array_map(function ($value) {
-                $this->values[] = $value;
-                return $value = "?";
+                    $this->values[] = $value;
+                    return $value = "?";
                 }, $data ))
         );
 
         return $this->prepareAndExecute();
+    }
+
+    /**
+     * Update a existing record in the database
+     *
+     * @param array<string, mixed> $data
+     * @return $this
+     */
+    public function update(array $data): self
+    {
+        $this->sql = "UPDATE " . $this->table . " SET " . implode(', ', array_map(function ($key, $value) {
+                    $this->values[] = $value;
+                    return "$key = ?";
+                }, array_keys($data), array_values($data))
+            );
+
+        return $this;
     }
 
     /**
@@ -161,8 +178,8 @@ class QueryBuilder
     public function statement(): string
     {
         $values = array_values($this->values);
-        var_dump($values);
         $this->sql = str_replace('?', '%s', $this->sql);
+
         return sprintf($this->sql, ...$values);
     }
 
@@ -189,6 +206,16 @@ class QueryBuilder
         $stmt->execute($this->values);
 
         return $stmt;
+    }
+
+    /**
+     * Placeholder method for prepareAndExecute
+     *
+     * @return bool|PDOStatement
+     */
+    public function run(): bool|PDOStatement
+    {
+        return $this->prepareAndExecute();
     }
 
     /**
