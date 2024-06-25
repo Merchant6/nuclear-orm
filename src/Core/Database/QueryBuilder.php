@@ -170,6 +170,16 @@ class QueryBuilder
         return $this;
     }
 
+    public function delete()
+    {
+        $this->sql = sprintf(
+            "DELETE FROM %s",
+            $this->table
+        );
+
+        return $this;
+    }
+
     /**
      * Get the sql statement with values
      *
