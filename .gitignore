@@ -1,3 +1,4 @@
 vendor
 src/config/
 bootstrap.php
+src/Models/

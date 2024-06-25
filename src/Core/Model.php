@@ -5,17 +5,19 @@ namespace Merchant\NuclearOrm\Core;
 
 use Exception;
 use Merchant\NuclearOrm\Core\Database\Connection;
+use Merchant\NuclearOrm\Core\Database\QueryBuilder;
 use PDO;
 
 abstract class Model
 {
     protected static Connection $connection;
+    protected QueryBuilder $builder;
     protected array $fillable;
     protected array $attributes = [];
 
     public function __construct()
     {
-
+        $this->builder = new QueryBuilder();
     }
 
 

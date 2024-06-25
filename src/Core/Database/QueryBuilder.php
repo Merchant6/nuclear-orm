@@ -170,7 +170,12 @@ class QueryBuilder
         return $this;
     }
 
-    public function delete()
+    /**
+     * Delete an existing record from database
+     *
+     * @return $this
+     */
+    public function delete(): self
     {
         $this->sql = sprintf(
             "DELETE FROM %s",
