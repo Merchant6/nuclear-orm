@@ -2,6 +2,7 @@
 
 namespace Merchant\NuclearOrm\Core\Database;
 
+use Exception;
 use PDO;
 use PDOStatement;
 
@@ -137,9 +138,14 @@ class QueryBuilder
      *
      * @param array<string, mixed> $data
      * @return bool|PDOStatement
+     * @throws Exception
      */
     public function insert(array $data): bool|PDOStatement
     {
+        if($data == null){
+            throw new Exception('Array cannot be null');
+        }
+
         $this->sql = sprintf(
             "INSERT INTO %s (%s) VALUES (%s)",
             $this->table,
@@ -158,9 +164,14 @@ class QueryBuilder
      *
      * @param array<string, mixed> $data
      * @return $this
+     * @throws Exception
      */
     public function update(array $data): self
     {
+        if($data == null){
+            throw new Exception('Array cannot be null');
+        }
+
         $this->sql = "UPDATE " . $this->table . " SET " . implode(', ', array_map(function ($key, $value) {
                     $this->values[] = $value;
                     return "$key = ?";

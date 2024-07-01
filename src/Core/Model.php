@@ -12,7 +12,8 @@ abstract class Model
 {
     protected static Connection $connection;
     protected QueryBuilder $builder;
-    protected array $fillable;
+    protected string $table = '';
+    protected array $fillable = [];
     protected array $attributes = [];
 
     public function __construct()
@@ -40,6 +41,21 @@ abstract class Model
     public function getConnection(): Connection
     {
         return self::$connection;
+    }
+
+    /**
+     * Get the table name associated with the model
+     *
+     * @return string
+     */
+    public function table(): string
+    {
+        if(property_exists(get_class($this), 'table') && !empty($this->table)){
+            return $this->table;
+        }
+
+        $className = explode("\\", get_called_class());
+        return lcfirst(end($className)) . "s";
     }
 
     /**
