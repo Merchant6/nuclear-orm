@@ -15,12 +15,25 @@ abstract class Model
     protected string $table = '';
     protected array $fillable = [];
     protected array $attributes = [];
+    protected array $guarded = [];
+    protected array $hidden = [];
+    protected array $columns = [];
 
     public function __construct()
     {
-        $this->builder = new QueryBuilder();
+        $this->boot();
     }
 
+    /**
+     * Boot the model instance
+     *
+     * @return void
+     */
+    public function boot(): void
+    {
+        $this->builder = new QueryBuilder();
+        $this->qualifyColumns();
+    }
 
     /**
      * Set the database connection
@@ -59,6 +72,25 @@ abstract class Model
     }
 
     /**
+     * Get the table columns
+     *
+     * @return array
+     */
+    public function columns(): array
+    {
+        return $this->columns;
+    }
+
+    /**
+     * @return void
+     */
+    public function qualifyColumns(): void
+    {
+        $this->columns = $this->builder
+            ->qualifyColumns($this->table());
+    }
+
+    /**
      * Get the mass-assignable attributes
      *
      * @return array
@@ -66,6 +98,26 @@ abstract class Model
     public function getFillable(): array
     {
         return $this->fillable;
+    }
+
+    /**
+     * Get the guarded attributes
+     *
+     * @return array
+     */
+    public function getGuarded(): array
+    {
+        return $this->guarded;
+    }
+
+    /**
+     * Get the hidden attributes
+     *
+     * @return array
+     */
+    public function getHidden(): array
+    {
+        return $this->hidden;
     }
 
     /**
@@ -80,6 +132,18 @@ abstract class Model
     }
 
     /**
+     * Check if an attribute is hidden.
+     *
+     * @param string $attributes
+     * @return bool
+     */
+    public function isHidden(string $attributes): bool
+    {
+        return in_array($attributes, $this->getHidden());
+
+    }
+
+    /**
      * @param string $attribute
      * @return mixed
      * @throws Exception
@@ -89,6 +153,11 @@ abstract class Model
         if (!array_key_exists($attribute, $this->attributes)) {
             throw new Exception("Attribute $attribute does not exist.");
         }
+
+        if(in_array($attribute, $this->hidden)) {
+            throw new Exception("Attribute $attribute is hidden.");
+        }
+
         return $this->attributes[$attribute];
     }
 
@@ -103,8 +172,42 @@ abstract class Model
         if ($this->isFillable($attribute)) {
             $this->attributes[$attribute] = $value;
         } else {
-            throw new Exception("Attribute $attribute is not fillable.");
+            throw new Exception("Attribute $attribute is not mass-assignable.");
         }
+    }
+
+    /**
+     * @param array $columns
+     * @return QueryBuilder
+     */
+    public function select(array $columns = ['*']): QueryBuilder
+    {
+        if($columns[0] === '*'){
+            $columns = $this->columns();
+            $diff = array_diff($columns, $this->getHidden());
+
+            return $this->builder
+                ->table($this->table())
+                ->select($diff);
+        }
+
+        $diff = array_diff($columns, $this->getHidden());
+        if ($diff)
+        {
+            return $this->builder
+                ->table($this->table())
+                ->select($diff);
+        }
+
+        return $this->builder
+            ->table($this->table())
+            ->select();
+    }
+
+    public function all()
+    {
+        return $this->select()
+            ->get();
     }
 
     /**

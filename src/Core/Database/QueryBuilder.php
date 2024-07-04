@@ -3,6 +3,7 @@
 namespace Merchant\NuclearOrm\Core\Database;
 
 use Exception;
+use InvalidArgumentException;
 use PDO;
 use PDOStatement;
 
@@ -138,12 +139,12 @@ class QueryBuilder
      *
      * @param array<string, mixed> $data
      * @return bool|PDOStatement
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function insert(array $data): bool|PDOStatement
     {
         if($data == null){
-            throw new Exception('Array cannot be null');
+            throw new InvalidArgumentException('Array cannot be null');
         }
 
         $this->sql = sprintf(
@@ -164,12 +165,12 @@ class QueryBuilder
      *
      * @param array<string, mixed> $data
      * @return $this
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function update(array $data): self
     {
         if($data == null){
-            throw new Exception('Array cannot be null');
+            throw new InvalidArgumentException('Array cannot be null');
         }
 
         $this->sql = "UPDATE " . $this->table . " SET " . implode(', ', array_map(function ($key, $value) {
@@ -195,6 +196,28 @@ class QueryBuilder
 
         return $this;
     }
+
+    public function qualifyColumns(string $table): array
+    {
+        $sql = "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_name = :table_name";
+        $stmt = $this->getConnection()->prepare($sql);
+        $stmt->execute([':table_name' => $table]);
+        $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_column($columns, 'COLUMN_NAME');
+    }
+
+//    public function qualifyColumns(string $table): array
+//    {
+//        $columnInfo = $this->table('information_schema.columns')
+//            ->select(['COLUMN_NAME'])
+//            ->where('table_name','=', $table)
+//            ->get();
+//
+//        $this->table('');
+//        unset($this->where);
+//
+//        return array_column($columnInfo, 'COLUMN_NAME');
+//    }
 
     /**
      * Get the sql statement with values
@@ -247,11 +270,18 @@ class QueryBuilder
     /**
      * Get the result when running a specified query
      *
-     * @return bool|array
+     * @param int $mode
+     * @return mixed
      */
-    public function get(): bool|array
+    public function get(int $mode = PDO::FETCH_ASSOC): mixed
     {
         return $this->prepareAndExecute()
-            ->fetchAll(PDO::FETCH_ASSOC);
+            ->fetchAll($mode);
+    }
+
+    public function getObject()
+    {
+        return $this->prepareAndExecute()
+            ->fetchObject();
     }
 }
