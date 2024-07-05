@@ -7,6 +7,7 @@ use Exception;
 use Merchant\NuclearOrm\Core\Database\Connection;
 use Merchant\NuclearOrm\Core\Database\QueryBuilder;
 use PDO;
+use PDOStatement;
 
 abstract class Model
 {
@@ -69,6 +70,18 @@ abstract class Model
 
         $className = explode("\\", get_called_class());
         return lcfirst(end($className)) . "s";
+    }
+
+    /**
+     * Return the QueryBuilder instance with
+     * the table
+     *
+     * @return QueryBuilder
+     */
+    public function buildWithTable(): QueryBuilder
+    {
+        return $this->builder
+            ->table($this->table());
     }
 
     /**
@@ -186,28 +199,59 @@ abstract class Model
             $columns = $this->columns();
             $diff = array_diff($columns, $this->getHidden());
 
-            return $this->builder
-                ->table($this->table())
-                ->select($diff);
+            return $this->buildWithTable()->select($diff);
         }
 
         $diff = array_diff($columns, $this->getHidden());
         if ($diff)
         {
-            return $this->builder
-                ->table($this->table())
-                ->select($diff);
+            return $this->buildWithTable()->select($diff);
         }
 
-        return $this->builder
-            ->table($this->table())
+        return $this->buildWithTable()
             ->select();
     }
 
     public function all()
     {
-        return $this->select()
-            ->get();
+        return $this->select()->get();
+    }
+
+    /**
+     * Create a new record in the table
+     *
+     * @param array $data
+     * @return bool|PDOStatement
+     * @throws Exception
+     */
+    public function create(array $data): bool|PDOStatement
+    {
+        $unfillable = array_diff(array_keys($data), $this->getFillable());
+        if($unfillable)
+        {
+            throw new Exception(sprintf(
+                'Column [%s] is not mass-assignable.',
+                implode(',', array_keys($unfillable))
+            ));
+        }
+
+        return $this->buildWithTable()->insert($data);
+    }
+
+
+    /**
+     * Add a where clause to the query
+     *
+     * @param string $column
+     * @param string $operator
+     * @param mixed $value
+     * @return $this
+     */
+    public function where(string $column, string $operator, mixed $value): self
+    {
+        $this->builder->where($column, $operator, $value);
+
+        return $this;
     }
 
     /**
