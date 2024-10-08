@@ -47,7 +47,7 @@ class Nuclear
 
     public function boot(): void
     {
-        QueryBuilder::setConnection($this->connection);
-        Model::setConnection($this->connection);
+        QueryBuilder::setConnection($this->getConnection());
+        Model::setConnection($this->getConnection());
     }
 }

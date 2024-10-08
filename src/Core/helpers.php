@@ -12,3 +12,8 @@ if(!function_exists('container')){
         return $builder->build();
     }
 }
+
+function diff(array $from, array $against)
+{
+    return array_diff($from, $against);
+}

@@ -84,6 +84,7 @@ class QueryBuilder
             $clauses[2] = "?";
             $this->sql .= implode(" ", $clauses);
         }
+        
         return $this;
     }
 
@@ -172,7 +173,7 @@ class QueryBuilder
         if($data == null){
             throw new InvalidArgumentException('Array cannot be null');
         }
-
+        
         $this->sql = "UPDATE " . $this->table . " SET " . implode(', ', array_map(function ($key, $value) {
                     $this->values[] = $value;
                     return "$key = ?";
@@ -225,7 +226,7 @@ class QueryBuilder
      * @return string
      */
     public function statement(): string
-    {
+    {   
         $values = array_values($this->values);
         $this->sql = str_replace('?', '%s', $this->sql);
 

@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace Merchant\NuclearOrm\Core;
 
-use Exception;
 use Merchant\NuclearOrm\Core\Database\Connection;
 use Merchant\NuclearOrm\Core\Database\QueryBuilder;
 use PDO;
 use PDOStatement;
+use Exception;
+use Merchant\NuclearOrm\Core\Exceptions\AttributeNotFoundException;
+use Merchant\NuclearOrm\Core\Exceptions\HiddenAttributeException;
+use Merchant\NuclearOrm\Core\Exceptions\MassAssignmentException;
 
 abstract class Model
 {
@@ -19,6 +22,10 @@ abstract class Model
     protected array $guarded = [];
     protected array $hidden = [];
     protected array $columns = [];
+    protected bool $exists = false;
+    protected array $hold = [];
+    protected string $primaryKey = 'id';
+    protected mixed $primaryKeyValue;
 
     public function __construct()
     {
@@ -70,6 +77,16 @@ abstract class Model
 
         $className = explode("\\", get_called_class());
         return lcfirst(end($className)) . "s";
+    }
+
+    /**
+     * Return the primary key name
+     *
+     * @return string
+     */
+    public function getKeyName(): string
+    {
+        return $this->primaryKey;
     }
 
     /**
@@ -159,16 +176,16 @@ abstract class Model
     /**
      * @param string $attribute
      * @return mixed
-     * @throws Exception
+     * @throws AttributeNotFoundException | HiddenAttributeException
      */
     public function getAttribute(string $attribute): mixed
     {
         if (!array_key_exists($attribute, $this->attributes)) {
-            throw new Exception("Attribute $attribute does not exist.");
+            throw new AttributeNotFoundException("Attribute $attribute does not exist.");
         }
 
         if(in_array($attribute, $this->hidden)) {
-            throw new Exception("Attribute $attribute is hidden.");
+            throw new HiddenAttributeException("Attribute $attribute is hidden.");
         }
 
         return $this->attributes[$attribute];
@@ -178,14 +195,14 @@ abstract class Model
      * @param string $attribute
      * @param mixed $value
      * @return void
-     * @throws Exception
+     * @throws MassAssignmentException
      */
     public function setAttribute(string $attribute, mixed $value): void
     {
         if ($this->isFillable($attribute)) {
             $this->attributes[$attribute] = $value;
         } else {
-            throw new Exception("Attribute $attribute is not mass-assignable.");
+            throw new MassAssignmentException("Attribute $attribute is not mass-assignable.");
         }
     }
 
@@ -195,21 +212,13 @@ abstract class Model
      */
     public function select(array $columns = ['*']): QueryBuilder
     {
-        if($columns[0] === '*'){
+        if ($columns[0] === '*') {
             $columns = $this->columns();
-            $diff = array_diff($columns, $this->getHidden());
-
-            return $this->buildWithTable()->select($diff);
         }
-
-        $diff = array_diff($columns, $this->getHidden());
-        if ($diff)
-        {
-            return $this->buildWithTable()->select($diff);
-        }
-
-        return $this->buildWithTable()
-            ->select();
+    
+        $diff = diff($columns, $this->getHidden());
+    
+        return $this->buildWithTable()->select($diff);
     }
 
     public function all()
@@ -222,15 +231,15 @@ abstract class Model
      *
      * @param array $data
      * @return bool|PDOStatement
-     * @throws Exception
+     * @throws MassAssignmentException
      */
     public function create(array $data): bool|PDOStatement
     {
-        $unfillable = array_diff(array_keys($data), $this->getFillable());
+        $unfillable = diff(array_keys($data), $this->getFillable());
         if($unfillable)
         {
-            throw new Exception(sprintf(
-                'Column [%s] is not mass-assignable.',
+            throw new MassAssignmentException(sprintf(
+                'Cannot INSERT into column [%s] that is not mass-assignable.',
                 implode(',', array_keys($unfillable))
             ));
         }
@@ -238,6 +247,27 @@ abstract class Model
         return $this->buildWithTable()->insert($data);
     }
 
+    /**
+     * @param array $data
+    //  * @return bool|PDOStatement
+     * @throws MassAssignmentException
+     */
+    public function update(array $data)
+    {
+        $unfillable = diff(array_keys($data), $this->getFillable());
+        if($unfillable)
+        {
+            throw new MassAssignmentException(sprintf(
+                'Cannot UPDATE column [%s] that is not mass-assignable.',
+                implode(',', array_keys($unfillable))
+            ));
+        }
+        
+        return $this->buildWithTable()
+            ->update($data)
+            ->where($this->getKeyName(), '=', $this->primaryKeyValue)
+            ->run();
+    }
 
     /**
      * Add a where clause to the query
@@ -254,17 +284,50 @@ abstract class Model
         return $this;
     }
 
+
     /**
-     * @throws Exception
+     * Find a record using a column, defaults
+     * to id
+     *
+     * @param mixed $value
+     * @param array $columns
+     * @return mixed
      */
+    public function find(mixed $primaryKeyValue, array $columns = ['*']): mixed
+    {
+        $found = $this->buildWithTable()
+            ->select($columns)
+            ->where($this->getKeyName(), '=', $primaryKeyValue)
+            ->get();
+
+        unset($this->buildWithTable()->where);
+        unset($this->buildWithTable()->values);
+
+        if($found){
+            $this->exists = true;
+            $this->primaryKeyValue = $found[0][$this->getKeyName()];
+            return $found[0];
+        }
+
+        return $found;
+    }
+
+    public function save()
+    {   
+        if($this->exists){
+            return $this->update(array_reverse($this->attributes));
+        }
+
+        return $this->buildWithTable()
+            ->insert($this->attributes);
+    }
+
+    
     public function __get(string $attribute)
     {
         return $this->getAttribute($attribute);
     }
 
-    /**
-     * @throws Exception
-     */
     public function __set(string $attribute, mixed $value): void
     {
         $this->setAttribute($attribute, $value);
