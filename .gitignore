@@ -4,3 +4,4 @@ bootstrap.php
 src/Models/
 .vscode
 .VSCodeCounter
+.idea
