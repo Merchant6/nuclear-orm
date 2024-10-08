@@ -16,15 +16,55 @@ abstract class Model
 {
     protected static Connection $connection;
     protected QueryBuilder $builder;
+
+    /**
+     * @var string
+     */
     protected string $table = '';
+
+    /**
+     * @var string[]
+     */
     protected array $fillable = [];
+
+    /**
+     * @var string[]
+     */
     protected array $attributes = [];
+
+    /**
+     * @var string[]
+     */
     protected array $guarded = [];
+
+    /**
+     * @var string[]
+     */
     protected array $hidden = [];
+
+    /**
+     * @var string[]
+     */
     protected array $columns = [];
+
+    /**
+     * @var bool
+     */
     protected bool $exists = false;
+
+    /**
+     * @var string[]
+     */
     protected array $hold = [];
+
+    /**
+     * @var string
+     */
     protected string $primaryKey = 'id';
+
+    /**
+     * @var mixed
+     */
     protected mixed $primaryKeyValue;
 
     public function __construct()
@@ -49,7 +89,7 @@ abstract class Model
      * @param $connection
      * @return void
      */
-    public static function setConnection($connection): void
+    public static function setConnection(Connection $connection): void
     {
         self::$connection = $connection;
     }
@@ -104,7 +144,7 @@ abstract class Model
     /**
      * Get the table columns
      *
-     * @return array
+     * @return string[]
      */
     public function columns(): array
     {
@@ -123,7 +163,7 @@ abstract class Model
     /**
      * Get the mass-assignable attributes
      *
-     * @return array
+     * @return string[]
      */
     public function getFillable(): array
     {
@@ -133,7 +173,7 @@ abstract class Model
     /**
      * Get the guarded attributes
      *
-     * @return array
+     * @return string[]
      */
     public function getGuarded(): array
     {
@@ -143,7 +183,7 @@ abstract class Model
     /**
      * Get the hidden attributes
      *
-     * @return array
+     * @return string[]
      */
     public function getHidden(): array
     {
@@ -207,7 +247,7 @@ abstract class Model
     }
 
     /**
-     * @param array $columns
+     * @param string[] $columns
      * @return QueryBuilder
      */
     public function select(array $columns = ['*']): QueryBuilder
@@ -221,7 +261,10 @@ abstract class Model
         return $this->buildWithTable()->select($diff);
     }
 
-    public function all()
+    /**
+     * @return mixed
+     */
+    public function all(): mixed
     {
         return $this->select()->get();
     }
@@ -229,7 +272,7 @@ abstract class Model
     /**
      * Create a new record in the table
      *
-     * @param array $data
+     * @param array<string, string> $data
      * @return bool|PDOStatement
      * @throws MassAssignmentException
      */
@@ -248,11 +291,11 @@ abstract class Model
     }
 
     /**
-     * @param array $data
-    //  * @return bool|PDOStatement
+     * @param array<string, string> $data
+     * @return bool|PDOStatement
      * @throws MassAssignmentException
      */
-    public function update(array $data)
+    public function update(array $data): bool|PDOStatement
     {
         $unfillable = diff(array_keys($data), $this->getFillable());
         if($unfillable)
@@ -289,8 +332,8 @@ abstract class Model
      * Find a record using a column, defaults
      * to id
      *
-     * @param mixed $value
-     * @param array $columns
+     * @param mixed $primaryKeyValue
+     * @param string[] $columns
      * @return mixed
      */
     public function find(mixed $primaryKeyValue, array $columns = ['*']): mixed
@@ -312,7 +355,10 @@ abstract class Model
         return $found;
     }
 
-    public function save()
+    /**
+     * @return bool|PDOStatement
+     */
+    public function save(): bool|PDOStatement
     {   
         if($this->exists){
             return $this->update(array_reverse($this->attributes));
@@ -322,12 +368,20 @@ abstract class Model
             ->insert($this->attributes);
     }
 
-    
-    public function __get(string $attribute)
+    /**
+     * @param string $attribute
+     * @return mixed
+     */
+    public function __get(string $attribute): mixed
     {
         return $this->getAttribute($attribute);
     }
 
+    /**
+     * @param string $attribute
+     * @param mixed $value
+     * @return void
+     */
     public function __set(string $attribute, mixed $value): void
     {
         $this->setAttribute($attribute, $value);

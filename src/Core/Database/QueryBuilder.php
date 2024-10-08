@@ -10,10 +10,30 @@ use PDOStatement;
 class QueryBuilder
 {
     protected static Connection $connection;
+
+    /**
+     * @var array<mixed>
+     */
     public array $where = [];
+
+    /**
+     * @var array<mixed>
+     */
     public array $whereAnd = [];
+
+    /**
+     * @var array<mixed>
+     */
     public array $values = [];
+
+    /**
+     * @var string
+     */
     private string $table = '';
+
+    /**
+     * @var string
+     */
     private string $sql = '';
 
     public function __construct()
@@ -27,7 +47,7 @@ class QueryBuilder
      * @param $connection
      * @return void
      */
-    public static function setConnection($connection): void
+    public static function setConnection(Connection $connection): void
     {
         self::$connection = $connection;
     }
@@ -58,7 +78,7 @@ class QueryBuilder
     /**
      * Build a select statement
      *
-     * @param array $columns<string>
+     * @param string[] $columns
      * @return $this
      */
     public function select(array $columns = ['*']): self
@@ -198,6 +218,10 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * @param string $table
+     * @return string[]
+     */
     public function qualifyColumns(string $table): array
     {
         $sql = "SELECT COLUMN_NAME FROM information_schema.columns WHERE table_name = :table_name";
@@ -206,19 +230,6 @@ class QueryBuilder
         $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return array_column($columns, 'COLUMN_NAME');
     }
-
-//    public function qualifyColumns(string $table): array
-//    {
-//        $columnInfo = $this->table('information_schema.columns')
-//            ->select(['COLUMN_NAME'])
-//            ->where('table_name','=', $table)
-//            ->get();
-//
-//        $this->table('');
-//        unset($this->where);
-//
-//        return array_column($columnInfo, 'COLUMN_NAME');
-//    }
 
     /**
      * Get the sql statement with values
@@ -275,14 +286,11 @@ class QueryBuilder
      * @return mixed
      */
     public function get(int $mode = PDO::FETCH_ASSOC): mixed
-    {
+    {   
+        /**
+         * @phpstan-ignore method.nonObject
+         */
         return $this->prepareAndExecute()
             ->fetchAll($mode);
-    }
-
-    public function getObject()
-    {
-        return $this->prepareAndExecute()
-            ->fetchObject();
     }
 }

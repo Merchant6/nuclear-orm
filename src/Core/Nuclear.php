@@ -10,6 +10,9 @@ class Nuclear
 {   
     private Connection $connection;
 
+    /**
+     * @param array<string, mixed> $connectionParams
+     */
     public function __construct(array $connectionParams)
     {
         $this->connection = $this->createConnectionfromParams($connectionParams);
@@ -19,7 +22,7 @@ class Nuclear
      * Takes an array of params and pass it to 
      * the ConnectionManager class
      * 
-     * @param array $params
+     * @param array<string, mixed> $params
      * @return Connection
      */
     private function createConnectionFromParams(array $params): Connection

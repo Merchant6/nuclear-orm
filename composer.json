@@ -20,5 +20,12 @@
     "require": {
         "php-di/php-di": "dev-master",
       "ext-pdo": "*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "2.0.x-dev"
+    },
+    "scripts": {
+        "units": "vendor/bin/phpunit --testsuite Unit",
+        "stan": "vendor/bin/phpstan analyse"
     }
 }

@@ -5,3 +5,4 @@ src/Models/
 .vscode
 .VSCodeCounter
 .idea
+phpstan.neon
